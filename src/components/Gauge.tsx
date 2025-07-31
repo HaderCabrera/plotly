@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface VoltageGaugeProps {
     voltage?: number;
@@ -12,7 +12,7 @@ interface VoltageGaugeProps {
 }
 
 const Gauge = ({
-    voltage = 10,
+    voltage = 10.4,
     minVoltage = 0,
     maxVoltage = 24,
     title = 'Voltaje del Sistema',
@@ -20,20 +20,57 @@ const Gauge = ({
     dangerThreshold = 20,
     warningThreshold = 16
 }: VoltageGaugeProps) => {
+
     const containerRef = useRef<HTMLDivElement>(null);
+
+    const [themeVersion, setThemeVersion] = useState(0); // Forzar recarga
+    const currentTheme = useRef<string>('');
+
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            if (newTheme !== currentTheme.current) {
+                currentTheme.current = newTheme;
+                setThemeVersion(v => v + 1);
+            }
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         if (!containerRef.current) return;
+
+        const style = getComputedStyle(document.documentElement);
+
+        // Obtener colores actuales
+        const colors = {
+            bgColor: style.getPropertyValue('--color-background').trim(),
+            cardColor: style.getPropertyValue('--color-card').trim(),
+            buttonColor: style.getPropertyValue('--color-muted').trim(),
+            textColor: style.getPropertyValue('--color-foreground').trim(),
+            gridColor: style.getPropertyValue('--color-border').trim(),
+            space1Color: style.getPropertyValue('--color-chart-1').trim(),
+            space2olor: style.getPropertyValue('--color-chart-2').trim(),
+            space3Color: style.getPropertyValue('--color-chart-3').trim(),
+            lineColor: style.getPropertyValue('--color-chart-5').trim(),
+            dangerColor: style.getPropertyValue('--color-danger').trim(),
+        };
 
         const loadPlot = async () => {
             try {
                 const Plotly = await import('plotly.js-dist-min');
 
-                // Definir colores según umbrales
+                //Colores según umbrales
                 const getGaugeColor = (value: number) => {
-                    if (value >= dangerThreshold) return '#dc2626'; // Rojo peligro
-                    if (value >= warningThreshold) return '#f59e0b'; // Amarillo advertencia
-                    return '#16a34a'; // Verde normal
+                    if (value >= dangerThreshold) return '#dc2626';
+                    if (value >= warningThreshold) return '#f59e0b';
+                    return '#16a34a';
                 };
 
                 const data: Plotly.Data[] = [
@@ -45,53 +82,49 @@ const Gauge = ({
                             font: { size: 16 }
                         },
                         type: 'indicator',
-                        mode: 'gauge+number',
+                        mode: 'gauge+number+delta',
                         gauge: {
-                            shape:"angular",
+                            shape: "angular",
                             axis: {
                                 range: [minVoltage, maxVoltage],
-                                tickwidth: 1,
-                                tickcolor: "#374151",
+                                tickwidth: 0.1,
+                                tickcolor: colors.textColor,
                                 tickfont: { size: 15 }
                             },
                             bar: {
                                 color: getGaugeColor(voltage),
-                                thickness: 0.75
+                                thickness: 0.5
                             },
-                            bgcolor: "black",
                             borderwidth: 1,
-                            bordercolor: "#a3a3a3",
+                            bordercolor: colors.bgColor,
                             steps: [
                                 {
                                     range: [minVoltage, warningThreshold],
-                                    color: "#bbf7d0" // Verde claro
+                                    color: colors.space2olor
                                 },
                                 {
                                     range: [warningThreshold, dangerThreshold],
-                                    color: "#fef08a" // Amarillo claro
+                                    color: colors.space3Color
                                 },
                                 {
                                     range: [dangerThreshold, maxVoltage],
-                                    color: "#fecaca" // Rojo claro
+                                    color: colors.space1Color
                                 }
                             ],
                             threshold: {
-                                line: { color: "#374151", width: 4 },
+                                line: { color: colors.dangerColor, width: 4 },
                                 thickness: 1,
-                                value: dangerThreshold
+                                value: 23.2
                             }
-                        }
+                        },
+                        delta: { reference: 20 },
                     }
                 ];
 
                 const layout: Partial<Plotly.Layout> = {
                     margin: { t: 80, b: 40, l: 40, r: 40 },
-                    paper_bgcolor: "rgba(0,0,0,0)",
-                    plot_bgcolor: "rgba(0,0,0,0)",
-                    font: {
-                        color: "#374151",
-                        family: "Arial, sans-serif"
-                    },
+                    paper_bgcolor: colors.bgColor,
+                    font: { color: colors.textColor },
                     autosize: true,
                 };
 
@@ -101,7 +134,8 @@ const Gauge = ({
                     staticPlot: false
                 };
 
-                Plotly.newPlot(containerRef.current!, data, layout, config);
+                await Plotly.newPlot(containerRef.current!, data, layout, config);
+
             } catch (error) {
                 console.error('Failed to load Plotly:', error);
             }
@@ -112,12 +146,11 @@ const Gauge = ({
         // Cleanup
         return () => {
             if (containerRef.current) {
-                import('plotly.js-dist-min').then((Plotly) => {
-                    Plotly.purge(containerRef.current!);
-                });
+                const Plotly = require('plotly.js-dist-min');
+                Plotly.purge(containerRef.current);
             }
         };
-    }, [voltage, minVoltage, maxVoltage, title, unit, dangerThreshold, warningThreshold]);
+    }, [voltage, minVoltage, maxVoltage, title, unit, dangerThreshold, warningThreshold, themeVersion]);
 
     return (
         <div ref={containerRef} className="w-full rounded-2xl overflow-hidden" />

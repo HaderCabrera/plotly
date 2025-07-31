@@ -1,20 +1,40 @@
 'use client';
-import { useEffect, useRef } from 'react';
+
+import { useEffect, useRef, useState } from 'react';
 
 interface PowerFactorBarProps {
-  powerFactor?: number;     // Valor actual (0.0 a 1.0)
-  minPF?: number;           // Mínimo histórico
-  maxPF?: number;           // Máximo histórico
-  title?: string;           // Título (ej. "Factor de Potencia")
+  powerFactor?: number;
+  minPF?: number;
+  maxPF?: number;
+  title?: string;
 }
 
 const SimpleBar = ({
-  powerFactor = 0.85,
+  powerFactor = 0.9,
   minPF = 0.7,
   maxPF = 1.0,
   title = 'Factor de Potencia'
 }: PowerFactorBarProps) => {
+
   const containerRef = useRef<HTMLDivElement>(null);
+  const [themeVersion, setThemeVersion] = useState(0); // Forzar recarga
+  const currentTheme = useRef<string>('');
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      if (newTheme !== currentTheme.current) {
+        currentTheme.current = newTheme;
+        setThemeVersion(v => v + 1);
+      }
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -22,12 +42,25 @@ const SimpleBar = ({
     const loadPlot = async () => {
       try {
         const Plotly = await import('plotly.js-dist-min');
+        const style = getComputedStyle(document.documentElement);
+
+        const colors = {
+          bgColor: style.getPropertyValue('--color-background').trim(),
+          cardColor: style.getPropertyValue('--color-card').trim(),
+          buttonColor: style.getPropertyValue('--color-muted').trim(),
+          textColor: style.getPropertyValue('--color-foreground').trim(),
+          dangerColor: style.getPropertyValue('--color-danger').trim(),
+          warningColor: style.getPropertyValue('--color-warning').trim(),
+          successColor: style.getPropertyValue('--color-success').trim(),
+          lineColor: style.getPropertyValue('--color-chart-3').trim(),
+          gridColor: style.getPropertyValue('--color-border').trim(),
+        }
 
         // Color dinámico de la barra
         const getBarColor = (value: number) => {
-          if (value >= 0.95) return '#16a34a';  // Verde
-          if (value >= 0.85) return '#f59e0b';  // Amarillo
-          return '#dc2626';                    // Rojo
+          if (value >= 0.95) return colors.dangerColor;
+          if (value >= 0.85) return colors.warningColor;
+          return colors.successColor;
         };
 
         const data: Plotly.Data[] = [
@@ -37,28 +70,22 @@ const SimpleBar = ({
             type: 'bar' as const,
             marker: {
               color: getBarColor(powerFactor),
-              line: { width: 2, color: '#ffffff' }
             },
             width: 0.6,
-            hoverinfo: 'none'
+            hoverinfo: 'y'
           }
         ];
 
         const layout: Partial<Plotly.Layout> = {
-          // ✅ Sin título en el gráfico
+          paper_bgcolor: colors.bgColor,
+          plot_bgcolor: colors.bgColor,
+          font: { color: colors.textColor },
           yaxis: {
             range: [0, 1.2],
-            tickfont: { size: 10 },
-            showgrid: true,
-            gridcolor: '#e5e7eb',
-            gridwidth: 0.5,
-            dtick: 0.2,
-            showticklabels: true
+            showgrid:false,
           },
           xaxis: {
-            showticklabels: false,
             showgrid: false,
-            zeroline: false
           },
           shapes: [
             // Línea para mínimo
@@ -70,7 +97,7 @@ const SimpleBar = ({
               y1: minPF,
               xref: 'x',
               yref: 'y',
-              line: { color: '#ef4444', width: 2, dash: 'dot' },
+              line: { color: colors.dangerColor, width: 1, dash: 'dashdot' },
               layer: 'above'
             },
             // Línea para máximo
@@ -82,7 +109,7 @@ const SimpleBar = ({
               y1: maxPF,
               xref: 'x',
               yref: 'y',
-              line: { color: '#10b981', width: 2, dash: 'dot' },
+              line: { color: colors.successColor, width: 1, dash: 'dashdot' },
               layer: 'above'
             }
           ],
@@ -94,7 +121,7 @@ const SimpleBar = ({
               yref: 'y',
               text: `Min: ${minPF.toFixed(2)}`,
               showarrow: false,
-              font: { size: 10, color: '#6b7280' },
+              font: { size: 10 },
               xanchor: 'center'
             },
             {
@@ -104,12 +131,11 @@ const SimpleBar = ({
               yref: 'y',
               text: `Max: ${maxPF.toFixed(2)}`,
               showarrow: false,
-              font: { size: 10, color: '#6b7280' },
+              font: { size: 10 },
               xanchor: 'center'
             }
           ],
           margin: { t: 20, b: 100, l: 40, r: 10 },
-          showlegend: false,
           autosize: true,
         };
 
@@ -129,15 +155,15 @@ const SimpleBar = ({
     };
 
     loadPlot();
-  }, [powerFactor, minPF, maxPF, title]);
+  }, [powerFactor, minPF, maxPF, title, themeVersion]);
 
   return (
-    <div  className=" grid grid-cols-2 items-center text-center  w-full">
-        <div ref={containerRef} className='rounded-2xl overflow-hidden'/>
-        <div>
-            <h1>{title}</h1>
-            <p>{powerFactor.toFixed(2)}</p>
-        </div>
+    <div className=" grid grid-cols-2 items-center text-center  w-full">
+      <div ref={containerRef} className='rounded-2xl overflow-hidden' />
+      <div>
+        <h1>{title}</h1>
+        <p>{powerFactor.toFixed(2)}</p>
+      </div>
     </div>
   );
 };

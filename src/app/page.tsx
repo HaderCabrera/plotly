@@ -7,10 +7,10 @@ import SimpleBar from '@/components/SimpleBar';
 
 export default function Home() {
   return (
-    <div className="grid grid-cols-1 gap-4 p-8">
+    <div className="grid grid-cols-2 gap-2 p-8">
 
-      <div className='relative bg-white rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
-        <div className='flex justify-center items-center bg-neutral-900 w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-background border-t border-6 border-l border-6'>
+      <div className='bg-background rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
+        <div className='flex justify-center items-center bg-accent w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-primary border-b-6 border-r-6 border-boder'>
           <h1>FRECUENCIA</h1>
         </div>
         <div className='py-5'>
@@ -18,8 +18,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className='relative bg-white rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
-        <div className='flex justify-center items-center bg-neutral-900 w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-background border-t border-6 border-l border-6'>
+      <div className='bg-background rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
+        <div className='flex justify-center items-center bg-accent w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-primary border-b-6 border-r-6 border-boder'>
           <h1>VOLTAJE</h1>
         </div>
         <div className='py-5'>
@@ -27,8 +27,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className='relative bg-white rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
-        <div className='flex justify-center items-center bg-neutral-900 w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-background border-t border-6 border-l border-6'>
+      <div className='bg-background rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
+        <div className='flex justify-center items-center bg-accent w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-primary border-b-6 border-r-6 border-boder'>
           <h1>FACTOR DE POTENCIA</h1>
         </div>
         <div className='py-5'>
@@ -36,8 +36,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className='relative bg-white rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
-        <div className='flex justify-center items-center bg-neutral-900 w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-background border-t border-6 border-l border-6'>
+      <div className='bg-background rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
+        <div className='flex justify-center items-center bg-accent w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-primary border-b-6 border-r-6 border-boder'>
           <h1>POTENCIA Y CONTROL</h1>
         </div>
         <div className='py-5'>

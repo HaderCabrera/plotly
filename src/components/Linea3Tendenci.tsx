@@ -1,67 +1,80 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface FrequencyTrendChartProps {
   minPF?: number;
   maxPF?: number;
 }
 
-interface PlotlyHTMLElement extends HTMLElement {
-  on(event: string, callback: (data: any) => void): void;
-  off(event: string, callback?: (data: any) => void): void;
-}
-
-interface Plotly {
-  newPlot: (
-    root: HTMLElement,
-    data: Plotly.Data[],
-    layout?: Partial<Plotly.Layout>,
-    config?: Partial<Plotly.Config>
-  ) => Promise<PlotlyHTMLElement>;
-  react: (
-    root: PlotlyHTMLElement,
-    data: Plotly.Data[],
-    layout?: Partial<Plotly.Layout>
-  ) => Promise<void>;
-  purge: (root: HTMLElement) => void;
-}
-
 const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProps) => {
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const plotInstance = useRef<PlotlyHTMLElement | null>(null);
+  const [themeVersion, setThemeVersion] = useState(0); // Forzar recarga
+  const currentTheme = useRef<string>('');
 
+  // Detectar cambios de tema
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      if (newTheme !== currentTheme.current) {
+        currentTheme.current = newTheme;
+        setThemeVersion(v => v + 1); // Incrementar para forzar recarga
+      }
+    });
 
-  
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Cargar el gráfico
   useEffect(() => {
     if (!containerRef.current) return;
 
     const loadPlot = async () => {
       try {
-        const Plotly = (await import('plotly.js-dist-min')) as unknown as Plotly;
-        
+        const Plotly = await import('plotly.js-dist-min');
+        const style = getComputedStyle(document.documentElement);
 
-        // Función para generar datos con tipos explícitos
-        const generateSampleData = (points: number, timeRange: number) => {
-          const now = Date.now();
-          return {
-            x: Array.from({ length: points }, (_, i) => 
-              new Date(now - (timeRange - (timeRange / points * i)))
-            ),
-            y: Array.from({ length: points }, () => 
-              60 + (Math.random() * 2 - 1) * 0.3
-            )
-          };
+        // Obtener colores actuales
+        const colors = {
+          bgColor: style.getPropertyValue('--color-background').trim(),
+          cardColor: style.getPropertyValue('--color-card').trim(),
+          buttonColor: style.getPropertyValue('--color-muted').trim(),
+          textColor: style.getPropertyValue('--color-foreground').trim(),
+          gridColor: style.getPropertyValue('--color-border').trim(),
+          lineColor: style.getPropertyValue('--color-chart-5').trim(),
         };
 
-        // Datos iniciales (1 hora de datos)
-        const initialData = generateSampleData(1000, 3600000);
+        // Función para generar datos
+        const generateData = (points: number, timeRange: number) => ({
+          x: Array.from({ length: points }, (_, i) =>
+            new Date(Date.now() - (timeRange - (timeRange / points * i)))
+          ),
+          y: Array.from({ length: points }, () =>
+            60 + (Math.random() * 2 - 1) * 0.3
+          )
+        });
 
-        // Configuración del layout con tipos explícitos
+        // Configuración completa del layout
         const layout: Partial<Plotly.Layout> = {
-          title: { text: 'Tendencia de Frecuencia' },
+          // title: {
+          //   text: 'Tendencia de Frecuencia',
+          //   font: { color: colors.textColor, size: 10 }
+          // },
+          paper_bgcolor: colors.bgColor,
+          plot_bgcolor: colors.cardColor,
+          font: { color: colors.textColor },
           xaxis: {
             type: 'date',
+            gridcolor: colors.gridColor,
+            linecolor: colors.gridColor,
+            zerolinecolor: colors.gridColor,
+            autorange: true,
             rangeselector: {
               buttons: [
                 { count: 1, label: '1h', step: 'hour', stepmode: 'backward' },
@@ -70,89 +83,59 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
                 { count: 1, label: '1m', step: 'month', stepmode: 'backward' },
                 { step: 'all', label: 'Todo' }
               ],
+              bgcolor: colors.buttonColor,
+              font: { color: colors.textColor },
+              activecolor: colors.bgColor,
               x: 0,
-              xanchor: 'left',
+              xanchor: 'auto',
               y: 1.1,
-              yanchor: 'top'
+              yanchor: 'auto'
             },
             rangeslider: {
               visible: true,
-              thickness: 0.1
-            },
-            autorange: true
+              thickness: 0.1,
+              bgcolor: colors.cardColor,
+              bordercolor: colors.gridColor
+            }
           },
           yaxis: {
-            title: { text: 'Frecuencia (Hz)' },
+            title: {
+              text: 'Frecuencia (Hz)',
+              font: { color: colors.textColor }
+            },
             range: [minPF - 1, maxPF + 1],
-            fixedrange: false
+            gridcolor: colors.gridColor,
+            fixedrange: false,
+            linecolor: colors.gridColor,
+            zerolinecolor: colors.gridColor,
           },
-          margin: { t: 50, l: 50, r: 30, b: 70 },
+          margin: { t: 40, l: 50, r: 30, b: 70},
           showlegend: false
         };
 
-        // Configuración del gráfico con tipos explícitos
-        const config: Partial<Plotly.Config> = {
+        const config = {
           responsive: true,
           scrollZoom: true,
           displayModeBar: true,
-          modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
           displaylogo: false
         };
 
-        // Crear el gráfico inicial con tipos correctos
-        plotInstance.current = await Plotly.newPlot(
+        // Crear gráfico nuevo
+        await Plotly.newPlot(
           containerRef.current!,
           [{
-            x: initialData.x,
-            y: initialData.y,
+            x: generateData(1000, 3600000).x,
+            y: generateData(1000, 3600000).y,
             type: 'scatter',
             mode: 'lines',
-            line: { width: 1 }
-          } as Plotly.Data],
+            line: {
+              color: colors.lineColor,
+              width: 1
+            }
+          }],
           layout,
           config
         );
-
-        // Manejador de eventos con tipo explícito
-        const handleRelayout = (event: any) => {
-          if (event['rangeselector.click']) {
-            const button = event['rangeselector.click'];
-            let timeRange = 3600000; // 1 hora por defecto
-            
-            if (button.label === '1h') timeRange = 3600000;
-            else if (button.label === '1d') timeRange = 86400000;
-            else if (button.label === '1w') timeRange = 604800000;
-            else if (button.label === '1m') timeRange = 2592000000;
-            
-            const newData = generateSampleData(1000, timeRange);
-            
-            Plotly.react(
-              plotInstance.current!,
-              [{
-                x: newData.x,
-                y: newData.y,
-                type: 'scatter',
-                mode: 'lines',
-                line: { width: 1 }
-              } as Plotly.Data],
-              {
-                'xaxis.autorange': true,
-                'yaxis.autorange': true
-              }
-            );
-          }
-        };
-
-        // Añadir event listener usando la instancia de Plotly
-        plotInstance.current.on('plotly_relayout', handleRelayout);
-
-        return () => {
-          if (plotInstance.current) {
-            // Limpiar event listener antes de purgar
-            plotInstance.current.off('plotly_relayout', handleRelayout);
-            Plotly.purge(plotInstance.current);
-          }
-        };
 
       } catch (error) {
         console.error('Error al cargar Plotly:', error);
@@ -162,21 +145,17 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
     loadPlot();
 
     return () => {
-      if (plotInstance.current && containerRef.current) {
-        const Plotly = require('plotly.js-dist-min') as unknown as Plotly;
+      if (containerRef.current) {
+        const Plotly = require('plotly.js-dist-min');
         Plotly.purge(containerRef.current);
       }
     };
-  }, [minPF, maxPF]);
+  }, [themeVersion, minPF, maxPF]);
 
   return (
-    <div 
-      ref={containerRef} 
-      style={{ 
-        width: '100%', 
-        height: '500px',
-        minHeight: '400px'
-      }} 
+    <div
+      ref={containerRef}
+      className='w-full rounded-2xl  overflow-hidden'
     />
   );
 };
