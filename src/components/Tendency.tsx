@@ -1,5 +1,6 @@
 'use client';
 
+import { trace } from 'console';
 import { useEffect, useRef, useState } from 'react';
 
 interface FrequencyTrendChartProps {
@@ -56,7 +57,18 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
             new Date(Date.now() - (timeRange - (timeRange / points * i)))
           ),
           y: Array.from({ length: points }, () =>
-            60 + (Math.random() * 2 - 1) * 0.3
+            60 + (Math.random() * 2 - 1) * 0.5
+          )
+        });
+
+        const generateData2 = (points: number, timeRange: number) => ({
+          y: Array.from({ length: points }, () =>
+            50 + (Math.random() * 2 - 1) * 0.5
+          )
+        });
+        const generateData3 = (points: number, timeRange: number) => ({
+          y: Array.from({ length: points }, () =>
+            55 + (Math.random() * 2 - 1) * 0.5
           )
         });
 
@@ -87,9 +99,9 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
               font: { color: colors.textColor },
               activecolor: colors.bgColor,
               x: 0,
-              xanchor: 'auto',
-              y: 1.1,
-              yanchor: 'auto'
+              xanchor: 'left',
+              y: 1.15,
+              yanchor: 'top'
             },
             rangeslider: {
               visible: true,
@@ -100,7 +112,7 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
           },
           yaxis: {
             title: {
-              text: 'Frecuencia (Hz)',
+              text: 'Frecuencia [Hz]',
               font: { color: colors.textColor }
             },
             range: [minPF - 1, maxPF + 1],
@@ -109,8 +121,15 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
             linecolor: colors.gridColor,
             zerolinecolor: colors.gridColor,
           },
-          margin: { t: 40, l: 50, r: 30, b: 70},
-          showlegend: false
+          margin: { t: 40, l: 50, r: 30, b: 70 },
+          legend: {
+            y: -0.35,          // Posición vertical (0 = fondo, 1 = parte superior)
+            yanchor: "top",   // Ancla el a leyenda en la posición y
+            yref:"paper",
+            x: 0.5,     
+            xanchor: "center", // Ancla la leyenda en el centro horizontal
+            orientation: "h"   // Orientación horizontal (opcional)
+          },
         };
 
         const config = {
@@ -120,19 +139,47 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
           displaylogo: false
         };
 
+        const trace1: Plotly.Data = {
+          x: generateData(1000, 3600000).x,
+          y: generateData(1000, 3600000).y,
+          type: 'scatter',
+          mode: 'lines',
+          name: 'Frecuencia 1',
+          line: {
+            color: 'blue',
+            width: 1,
+            simplify: true,
+          }
+        };
+
+        const trace2: Plotly.Data = {
+          x: generateData(1000, 3600000).x,
+          y: generateData3(1000, 3600000).y,
+          type: 'scatter',
+          mode: 'lines',
+          name: 'Frecuencia 2',
+          line: {
+            color: colors.lineColor,
+            width: 1
+          }
+        };
+
+        const trace3: Plotly.Data = {
+          x: generateData(1000, 3600000).x,
+          y: generateData2(1000, 3600000).y,
+          type: 'scatter',
+          mode: 'lines',
+          name: 'Frecuencia 3',
+          line: {
+            color: 'green',
+            width: 1
+          }
+        }
+        const data = [trace1, trace2, trace3]
         // Crear gráfico nuevo
-        await Plotly.newPlot(
+        await Plotly.react(
           containerRef.current!,
-          [{
-            x: generateData(1000, 3600000).x,
-            y: generateData(1000, 3600000).y,
-            type: 'scatter',
-            mode: 'lines',
-            line: {
-              color: colors.lineColor,
-              width: 1
-            }
-          }],
+          data,
           layout,
           config
         );
@@ -155,7 +202,7 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
   return (
     <div
       ref={containerRef}
-      className='w-full rounded-2xl  overflow-hidden'
+      className='w-full h-full rounded-2xl  overflow-hidden'
     />
   );
 };

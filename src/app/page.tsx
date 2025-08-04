@@ -1,13 +1,15 @@
 "use client"
 
 import Gauge from '@/components/Gauge';
-import FrequencyTrendChart from '@/components/Linea3Tendenci';
-import PlotlyDirectChart from '@/components/PlotlyDirect'
+import FrequencyTrendChart from '@/components/Tendency';
+import PlotlyChart from '@/components/XamplePlotly';
+import PlotlyDirectChart from '@/components/XamplePlotly'
 import SimpleBar from '@/components/SimpleBar';
+import BarPlotly from '@/components/Bar';
 
 export default function Home() {
   return (
-    <div className="grid grid-cols-2 gap-2 p-8">
+    <div className="grid grid-cols-1 gap-2 p-8">
 
       <div className='bg-background rounded-bl-[2.5rem] rounded-tr-[2.5rem] shadow-2xl'>
         <div className='flex justify-center items-center bg-accent w-[35%] h-[35px] pr-2 py-5 rounded-br-full text-primary border-b-6 border-r-6 border-boder'>
@@ -32,7 +34,7 @@ export default function Home() {
           <h1>FACTOR DE POTENCIA</h1>
         </div>
         <div className='py-5'>
-          <SimpleBar />
+          <BarPlotly />
         </div>
       </div>
 
@@ -41,9 +43,10 @@ export default function Home() {
           <h1>POTENCIA Y CONTROL</h1>
         </div>
         <div className='py-5'>
-          <PlotlyDirectChart />
+          <PlotlyChart />
         </div>
       </div>
+
     </div>
   );
 }

@@ -153,7 +153,7 @@ const Gauge = ({
     }, [voltage, minVoltage, maxVoltage, title, unit, dangerThreshold, warningThreshold, themeVersion]);
 
     return (
-        <div ref={containerRef} className="w-full rounded-2xl overflow-hidden" />
+        <div ref={containerRef} className="w-full h-full rounded-2xl overflow-hidden" />
     );
 };
 

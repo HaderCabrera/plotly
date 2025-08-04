@@ -130,21 +130,12 @@
 
 /*IMPORTANTE PARA EL MODEBAR*/
 .modebar-container .modebar {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    border : 0px !important;
-    border : none !important;
-    padding: 6px !important;
-}
-.modebar-container .modebar-group {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    border: none !important;
+    margin-right: 1.3rem !important;
 }
 
-    /* --chart-1: #6a5acd;
-    --chart-2: #00ced1; 
-    --chart-3: #ffd700; 
-    --chart-4: #ff69b4; 
-  */
+.modebar-container .modebar-group {
+    margin-top: 5px !important;
+    display: flex !important;
+    flex-direction: row !important;
+}
+
