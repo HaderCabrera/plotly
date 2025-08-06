@@ -5,7 +5,7 @@ import FrequencyTrendChart from '@/components/Tendency';
 import PlotlyChart from '@/components/XamplePlotly';
 import PlotlyDirectChart from '@/components/XamplePlotly'
 import SimpleBar from '@/components/SimpleBar';
-import BarPlotly from '@/components/Bar';
+import BarPlotly from '@/components/BarV0';
 
 export default function Home() {
   return (

@@ -1,24 +1,34 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 
+
 interface VoltageGaugeProps {
-    voltage?: number;
-    minVoltage?: number;
-    maxVoltage?: number;
+    type?: string;
+    variable?: number;
+    minVariable?: number;
+    maxVariable?: number;
     title?: string;
     unit?: string;
-    dangerThreshold?: number;
-    warningThreshold?: number;
+    warningLow?: number;
+    warningHight?: number;
+    reference?: number;
+    optimalMin?: number;
+    optimalMax?: number;
 }
 
 const Gauge = ({
-    voltage = 10.4,
-    minVoltage = 0,
-    maxVoltage = 24,
-    title = 'Voltaje del Sistema',
-    unit = 'V',
-    dangerThreshold = 20,
-    warningThreshold = 16
+    type = 'startToEnd',
+    variable = 10.4,
+    minVariable = 0,
+    maxVariable = 24,
+    title = 'Grafico tipo gauge',
+    unit = '[]',
+    warningLow = 10,
+    warningHight = 35,
+    reference = 10,
+    optimalMin = 5,
+    optimalMax = 10,
+
 }: VoltageGaugeProps) => {
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -66,19 +76,21 @@ const Gauge = ({
             try {
                 const Plotly = await import('plotly.js-dist-min');
 
-                //Colores según umbrales
                 const getGaugeColor = (value: number) => {
-                    if (value >= dangerThreshold) return '#dc2626';
-                    if (value >= warningThreshold) return '#f59e0b';
-                    return '#16a34a';
+                    if (value <= warningLow) return '#dc2626';             // Danger bajo
+                    if (value <= optimalMin) return '#f59e0b';              // Warning bajo
+                    if (value <= optimalMax) return '#16a34a';              // Óptimo
+                    if (value <= warningHight) return '#f59e0b';            // Warning alto
+                    return '#dc2626';                                       // Danger alto
                 };
+
 
                 const data: Plotly.Data[] = [
                     {
                         domain: { x: [0, 1], y: [0, 1] },
-                        value: voltage,
+                        value: variable,
                         title: {
-                            text: `<b>${title}</b><br><span style="font-size:0.8em">${`Rango: ${minVoltage}- ${maxVoltage}`} ${unit}</span>`,
+                            text: `<b>${title}</b><br><span style="font-size:0.8em">${`referencia: ${reference}`}[${unit}]</span>`,
                             font: { size: 16 }
                         },
                         type: 'indicator',
@@ -86,38 +98,46 @@ const Gauge = ({
                         gauge: {
                             shape: "angular",
                             axis: {
-                                range: [minVoltage, maxVoltage],
+                                range: [minVariable, maxVariable],
                                 tickwidth: 0.1,
                                 tickcolor: colors.textColor,
                                 tickfont: { size: 15 }
                             },
                             bar: {
-                                color: getGaugeColor(voltage),
+                                color: getGaugeColor(variable),
                                 thickness: 0.5
                             },
                             borderwidth: 1,
                             bordercolor: colors.bgColor,
                             steps: [
                                 {
-                                    range: [minVoltage, warningThreshold],
+                                    range: [minVariable, warningLow],
+                                    color: colors.space1Color
+                                },
+                                {
+                                    range: [warningLow, optimalMin],
                                     color: colors.space2olor
                                 },
                                 {
-                                    range: [warningThreshold, dangerThreshold],
+                                    range: [optimalMin, optimalMax],
                                     color: colors.space3Color
                                 },
                                 {
-                                    range: [dangerThreshold, maxVoltage],
+                                    range: [optimalMax, warningHight],
+                                    color: colors.space2olor
+                                },
+                                {
+                                    range: [warningHight, maxVariable],
                                     color: colors.space1Color
                                 }
                             ],
                             threshold: {
                                 line: { color: colors.dangerColor, width: 4 },
                                 thickness: 1,
-                                value: 23.2
+                                value: warningHight
                             }
                         },
-                        delta: { reference: 20 },
+                        delta: { reference: reference },
                     }
                 ];
 
@@ -150,7 +170,7 @@ const Gauge = ({
                 Plotly.purge(containerRef.current);
             }
         };
-    }, [voltage, minVoltage, maxVoltage, title, unit, dangerThreshold, warningThreshold, themeVersion]);
+    }, [variable, minVariable, maxVariable, title, unit, warningLow, warningHight, themeVersion]);
 
     return (
         <div ref={containerRef} className="w-full h-full rounded-2xl overflow-hidden" />

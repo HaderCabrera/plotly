@@ -1,14 +1,30 @@
 'use client';
 
-import { trace } from 'console';
 import { useEffect, useRef, useState } from 'react';
 
-interface FrequencyTrendChartProps {
-  minPF?: number;
-  maxPF?: number;
+interface TraceData {
+  x: Date[];
+  y: number[];
+  name: string;
+  lineColor?: string;
+  mode?: 'lines' | 'markers' | 'lines+markers';
 }
 
-const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProps) => {
+interface TendencyChartProps {
+  minPF: number;
+  maxPF: number;
+  traces: TraceData[];
+  tittle?: string;
+  yAxisTitle: string;
+}
+
+export default function FrequencyTrendChart({
+  minPF = 50,
+  maxPF = 60,
+  traces = [],
+  tittle = "Grafica de tendencia",
+  yAxisTitle = "Eje Y",
+}: TendencyChartProps) {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [themeVersion, setThemeVersion] = useState(0); // Forzar recarga
@@ -50,27 +66,6 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
           gridColor: style.getPropertyValue('--color-border').trim(),
           lineColor: style.getPropertyValue('--color-chart-5').trim(),
         };
-
-        // Función para generar datos
-        const generateData = (points: number, timeRange: number) => ({
-          x: Array.from({ length: points }, (_, i) =>
-            new Date(Date.now() - (timeRange - (timeRange / points * i)))
-          ),
-          y: Array.from({ length: points }, () =>
-            60 + (Math.random() * 2 - 1) * 0.5
-          )
-        });
-
-        const generateData2 = (points: number, timeRange: number) => ({
-          y: Array.from({ length: points }, () =>
-            50 + (Math.random() * 2 - 1) * 0.5
-          )
-        });
-        const generateData3 = (points: number, timeRange: number) => ({
-          y: Array.from({ length: points }, () =>
-            55 + (Math.random() * 2 - 1) * 0.5
-          )
-        });
 
         // Configuración completa del layout
         const layout: Partial<Plotly.Layout> = {
@@ -125,8 +120,8 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
           legend: {
             y: -0.35,          // Posición vertical (0 = fondo, 1 = parte superior)
             yanchor: "top",   // Ancla el a leyenda en la posición y
-            yref:"paper",
-            x: 0.5,     
+            yref: "paper",
+            x: 0.5,
             xanchor: "center", // Ancla la leyenda en el centro horizontal
             orientation: "h"   // Orientación horizontal (opcional)
           },
@@ -139,47 +134,24 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
           displaylogo: false
         };
 
-        const trace1: Plotly.Data = {
-          x: generateData(1000, 3600000).x,
-          y: generateData(1000, 3600000).y,
+        // Convertir los datos de entrada a traces de Plotly
+        const plotlyTraces: Array<Plotly.Data> = traces.map(trace => ({
+          x: trace.x,
+          y: trace.y,
           type: 'scatter',
-          mode: 'lines',
-          name: 'Frecuencia 1',
+          mode: trace.mode || 'lines',
+          name: trace.name,
           line: {
-            color: 'blue',
+            color: trace.lineColor || '',
             width: 1,
             simplify: true,
           }
-        };
+        }));
 
-        const trace2: Plotly.Data = {
-          x: generateData(1000, 3600000).x,
-          y: generateData3(1000, 3600000).y,
-          type: 'scatter',
-          mode: 'lines',
-          name: 'Frecuencia 2',
-          line: {
-            color: colors.lineColor,
-            width: 1
-          }
-        };
-
-        const trace3: Plotly.Data = {
-          x: generateData(1000, 3600000).x,
-          y: generateData2(1000, 3600000).y,
-          type: 'scatter',
-          mode: 'lines',
-          name: 'Frecuencia 3',
-          line: {
-            color: 'green',
-            width: 1
-          }
-        }
-        const data = [trace1, trace2, trace3]
         // Crear gráfico nuevo
         await Plotly.react(
           containerRef.current!,
-          data,
+          plotlyTraces,
           layout,
           config
         );
@@ -206,5 +178,3 @@ const FrequencyTrendChart = ({ minPF = 50, maxPF = 60 }: FrequencyTrendChartProp
     />
   );
 };
-
-export default FrequencyTrendChart;
