@@ -107,7 +107,7 @@ export default function FrequencyTrendChart({
           },
           yaxis: {
             title: {
-              text: 'Frecuencia [Hz]',
+              text: yAxisTitle,
               font: { color: colors.textColor }
             },
             range: [minPF - 1, maxPF + 1],
@@ -116,9 +116,9 @@ export default function FrequencyTrendChart({
             linecolor: colors.gridColor,
             zerolinecolor: colors.gridColor,
           },
-          margin: { t: 40, l: 50, r: 30, b: 70 },
+          margin: { t: 40, l: 50, r: 30, b: 20 },
           legend: {
-            y: -0.35,          // Posición vertical (0 = fondo, 1 = parte superior)
+            y: -0.4,          // Posición vertical (0 = fondo, 1 = parte superior)
             yanchor: "top",   // Ancla el a leyenda en la posición y
             yref: "paper",
             x: 0.5,

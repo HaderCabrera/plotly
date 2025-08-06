@@ -1,37 +1,31 @@
 'use client';
+
 import { useEffect, useRef, useState } from 'react';
 
 interface CylinderTempChartProps {
-  minTemp?: number;
-  maxTemp?: number;
-  title?: string;
-  warningThreshold?: number;
+    minTemp: number;
+    maxTemp: number;
+    title: string;
+    warningThreshold?: number;
+    cylinders?: Array<string>;
+    current?: Array<number>;
+    min?: Array<number>;
+    max?: Array<number>;
 }
 
 const CylinderTemperatureChart = ({
-  minTemp = 70,
-  maxTemp = 120,
+  minTemp = 85,
+  maxTemp = 110,
   warningThreshold = 0.9, // 90% del maxTemp
-  title = 'Temperatura de Cilindros'
+  title = 'Temperatura de Cilindros',
+  cylinders = [],
+  current = [],
+  min = [],
+  max = [],
 }: CylinderTempChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [themeVersion, setThemeVersion] = useState(0);
   const currentTheme = useRef<string>('');
-
-  // Generar datos simulados para 10 cilindros
-  const generateSimulatedData = () => {
-    const cylinders = Array.from({length: 20}, (_, i) => `C${i+1}`);
-    const currentTemps = cylinders.map(() => minTemp + Math.random() * (maxTemp - minTemp));
-    
-    return {
-      cylinders,
-      current: currentTemps,
-      min: currentTemps.map(temp => Math.max(minTemp - 5, temp - 5 - Math.random() * 5)),
-      max: currentTemps.map(temp => Math.min(maxTemp + 5, temp + 5 + Math.random() * 5))
-    };
-  };
-
-  const {cylinders, current, min, max} = generateSimulatedData();
 
   // Detectar cambios de tema
   useEffect(() => {
@@ -71,7 +65,6 @@ const CylinderTemperatureChart = ({
 
         // Datos para el gráfico
         const data: Plotly.Data[] = [
-          // 1. Línea de valores actuales (con marcadores y texto)
           {
             type: 'scatter',
             mode: 'lines+markers',
@@ -86,7 +79,7 @@ const CylinderTemperatureChart = ({
               family: 'Arial, sans-serif'
             },
             line: {
-              color: '#3498db', // Azul para la línea actual
+              color: '#3498db',
               width: 3
             },
             marker: {

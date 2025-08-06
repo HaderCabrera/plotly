@@ -5,7 +5,9 @@ import FrequencyTrendChart from '@/components/Tendency';
 import PlotlyChart from '@/components/XamplePlotly';
 import PlotlyDirectChart from '@/components/XamplePlotly'
 import SimpleBar from '@/components/SimpleBar';
-import BarPlotly from '@/components/BarV0';
+import PolarPhaseAnglePlot from '@/components/Polar'
+
+
 
 export default function Home() {
   return (
@@ -16,7 +18,11 @@ export default function Home() {
           <h1>FRECUENCIA</h1>
         </div>
         <div className='py-5'>
-          <FrequencyTrendChart minPF={40.5} maxPF={60.5} />
+          <PolarPhaseAnglePlot
+            angles={{ l1l2: 120, l2l3: 140, l3l1: 100 }}
+            title="Ángulos de Fase del Sistema"
+            referenceAngle={120}
+          />
         </div>
       </div>
 
@@ -34,7 +40,7 @@ export default function Home() {
           <h1>FACTOR DE POTENCIA</h1>
         </div>
         <div className='py-5'>
-          <BarPlotly />
+          {/* <BarPlotly /> */}
         </div>
       </div>
 

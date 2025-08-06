@@ -1,15 +1,23 @@
 'use client'
 
 import { FrecuencyCilindersData } from '@/utils/generatedata/tendency'
-import { PressionGasData, VelocidadData, PressionAceiteData, PressionTurboData } from '@/utils/generatedata/gauge'
+import {
+    PressionGasData,
+    VelocidadData,
+    PressionAceiteData,
+    PressionTurboData
+} from '@/utils/generatedata/gauge'
+import { generateSimulatedData } from '@/utils/generatedata/cilinders'
+import CylinderTemperatureChart from '@/components/AreaTendency';
 
-import BarPlotly from "@/components/BarV1";
+import PolarPhaseAnglePlot from '@/components/Polar'
 import Gauge from "@/components/Gauge";
 import Tendency from "@/components/Tendency";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings } from "lucide-react";
 import { useState } from "react";
-import CylinderTemperatureChart from '@/components/BarV1';
+
 
 export default function MotorGrid() {
     const [selectTendency, setselectTendency] = useState('temperatura');
@@ -209,12 +217,7 @@ export default function MotorGrid() {
                     <div className=' flex-1 min-h-0'>
                         {selectTendency === 'temperatura' ? (
                             // <BarPlotly /> // Componente para
-                            <CylinderTemperatureChart
-                                minTemp={80}
-                                maxTemp={120}
-                                title="Temperaturas - Motor Principal"
-                                warningThreshold={0.85} // 85% del máximo
-                            />
+                            <CylinderTemperatureChart {...generateSimulatedData({})} />
                         ) : selectTendency === 'frecuencia' ? (
                             <Tendency {...FrecuencyCilindersData} /> // Componente para frecuencia (o el que necesites)
                         ) : null}

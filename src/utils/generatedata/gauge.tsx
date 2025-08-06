@@ -67,10 +67,24 @@ const VelocidadData: VoltageGaugeProps = {
     reference: 1800,
 }
 
+const PowerFactorData: VoltageGaugeProps = {
+    variable: 0.96,
+    minVariable: 0,
+    maxVariable: 1.5,
+    title: 'Factor de potencia',
+    unit: '',
+    optimalMax: 1,
+    optimalMin: 0.90,
+    warningHight: 1.2,
+    warningLow: 0.85,
+    reference: 1,
+}
+
 //OUTPUTS
 export {
     PressionGasData,
     VelocidadData,
     PressionAceiteData,
-    PressionTurboData
+    PressionTurboData,
+    PowerFactorData,
 }
